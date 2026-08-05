@@ -119,7 +119,7 @@
         grid-template-rows: 1fr auto;
       }
       .sidebar {
-        height: 200px;
+        height: 220px;
       }
     }
 
@@ -239,7 +239,7 @@
       display: flex;
       flex-direction: column;
       gap: 0.4rem;
-      max-height: 140px;
+      max-height: 120px;
       overflow-y: auto;
     }
 
@@ -376,7 +376,7 @@
         <div class="progress-box">
           <div class="progress-header">
             <span>Mint Target Synthesis</span>
-            <span id="targetText">0 / 60</span>
+            <span id="targetText">0 / 0</span>
           </div>
           <div class="progress-track">
             <div class="progress-fill" id="progressFill"></div>
@@ -428,7 +428,6 @@
         const osc = this.ctx.createOscillator();
         const gain = this.ctx.createGain();
 
-        // Higher combo pitch ramp
         const pitch = Math.min(800, 280 + (combo * 20) + Math.random() * 80);
         osc.type = 'sine';
         osc.frequency.setValueAtTime(pitch, this.ctx.currentTime);
@@ -468,17 +467,25 @@
     const audio = new SoundEngine();
 
     // --- GAME ENGINE STATE ---
-    const MINT_TARGET = 60; // 60 pops needed to complete synthesis
+    // Dynamic random target from 60 to 150
+    let mintTarget = Math.floor(Math.random() * (150 - 60 + 1)) + 60;
     let totalPopped = 0;
     let comboCount = 0;
     let comboTimer = null;
     let coresRemaining = 1842;
 
+    // Expanded DNA pipeline to support > 10,000 unique trait permutations
     let creatureDNA = {
       hue: 180,
-      bodyShape: 'circle',
+      secondaryHue: 240,
+      bodyShape: 'circle', // circle, rect, blob, star, oval
+      texturePattern: 'none', // dots, stripes, rings
       eyes: 0,
+      eyeStyle: 'classic', // classic, cyclops, anime, alien, cute
       limbs: 0,
+      limbType: 'tentacle', // tentacle, antenna, feet
+      ears: 'none', // bunny, cat, pointed, horns
+      mouth: 'none', // smile, fang, surprised, cute
       aura: false,
       crown: false
     };
@@ -511,18 +518,17 @@
       }
 
       reset(initial = false) {
-        this.radius = Math.random() * 18 + 18; // 18px to 36px radius
+        this.radius = Math.random() * 18 + 18;
         this.x = Math.random() * (canvas.width - this.radius * 2) + this.radius;
         this.y = initial ? Math.random() * canvas.height : -this.radius * 2;
-        this.speedY = Math.random() * 2.5 + 1.5; // Fall speed
+        this.speedY = Math.random() * 2.5 + 1.5;
         this.driftFreq = Math.random() * 0.03 + 0.01;
         this.driftAmp = Math.random() * 1.5 + 0.5;
         this.popped = false;
         
-        // 5% chance of spawning a rare golden core bubble
         this.type = Math.random() < 0.05 ? 'gold' : 'standard';
         if (this.type === 'gold') {
-          this.speedY *= 1.4; // Gold bubbles fall faster!
+          this.speedY *= 1.4;
         }
       }
 
@@ -530,7 +536,6 @@
         this.y += this.speedY;
         this.x += Math.sin(this.y * this.driftFreq) * this.driftAmp;
 
-        // Reset if off bottom of screen
         if (this.y - this.radius > canvas.height) {
           this.reset(false);
         }
@@ -560,12 +565,10 @@
         ctx.fillStyle = grad;
         ctx.fill();
 
-        // Rim highlight
         ctx.strokeStyle = this.type === 'gold' ? '#ffd700' : 'rgba(255, 255, 255, 0.4)';
         ctx.lineWidth = 1.5;
         ctx.stroke();
 
-        // Specular highlight spot
         ctx.beginPath();
         ctx.arc(-this.radius * 0.35, -this.radius * 0.35, this.radius * 0.25, 0, Math.PI * 2);
         ctx.fillStyle = 'rgba(255, 255, 255, 0.7)';
@@ -642,7 +645,6 @@
       const currX = e.clientX - rect.left;
       const currY = e.clientY - rect.top;
 
-      // Interpolate along the swipe path so fast mouse moves slice everything
       const steps = 5;
       for (let i = 0; i <= steps; i++) {
         const ix = lastPointerPos.x + (currX - lastPointerPos.x) * (i / steps);
@@ -657,10 +659,9 @@
     function popBubble(bubble) {
       const isGold = bubble.type === 'gold';
       spawnPopParticles(bubble.x, bubble.y, isGold);
-      bubble.reset(false); // Instantly recycle popped bubble back to top
+      bubble.reset(false);
 
-      // Progress & Combos
-      const popValue = isGold ? 5 : 1; // Gold bubbles give +5 progress!
+      const popValue = isGold ? 5 : 1;
       totalPopped += popValue;
       poppedDisplay.textContent = totalPopped;
 
@@ -687,37 +688,72 @@
     }
 
     function updateProgress() {
-      const percent = Math.min(100, (totalPopped / MINT_TARGET) * 100);
+      const percent = Math.min(100, (totalPopped / mintTarget) * 100);
       progressFill.style.width = `${percent}%`;
-      targetText.textContent = `${Math.min(MINT_TARGET, totalPopped)} / ${MINT_TARGET}`;
+      targetText.textContent = `${Math.min(mintTarget, totalPopped)} / ${mintTarget}`;
 
-      if (totalPopped >= MINT_TARGET && !winModal.classList.contains('visible')) {
+      if (totalPopped >= mintTarget && !winModal.classList.contains('visible')) {
         triggerWin();
       }
     }
 
+    // --- PROCEDURAL CHARACTER GENERATION SYSTEM (10,000+ Permutations) ---
     function evolveCreature(isGold) {
-      creatureDNA.hue = (creatureDNA.hue + (isGold ? 45 : 8)) % 360;
+      creatureDNA.hue = (creatureDNA.hue + (isGold ? 40 : 6)) % 360;
+      creatureDNA.secondaryHue = (creatureDNA.hue + 120) % 360;
 
-      // Gradual feature unlocks as target progresses
-      const progressRatio = totalPopped / MINT_TARGET;
+      const progressRatio = totalPopped / mintTarget;
 
-      if (progressRatio > 0.2 && creatureDNA.eyes === 0) {
-        creatureDNA.eyes = 1;
-        logTrait('Eye Structure Formed');
+      // 10% Progress: Body Shape Assignment
+      if (progressRatio > 0.10 && creatureDNA.bodyShape === 'circle') {
+        const shapes = ['circle', 'rect', 'blob', 'oval', 'star'];
+        creatureDNA.bodyShape = shapes[Math.floor(Math.random() * shapes.length)];
+        logTrait(`Body Type: ${creatureDNA.bodyShape.toUpperCase()}`);
       }
-      if (progressRatio > 0.4 && creatureDNA.limbs === 0) {
-        creatureDNA.limbs = 2;
-        logTrait('Limb Nodes Extracted');
+
+      // 25% Progress: Ears / Horns Attachment
+      if (progressRatio > 0.25 && creatureDNA.ears === 'none') {
+        const earTypes = ['bunny', 'cat', 'pointed', 'horns'];
+        creatureDNA.ears = earTypes[Math.floor(Math.random() * earTypes.length)];
+        logTrait(`Ears: ${creatureDNA.ears.toUpperCase()}`);
       }
-      if (progressRatio > 0.6 && !creatureDNA.aura) {
+
+      // 40% Progress: Eye Configuration & Style
+      if (progressRatio > 0.40 && creatureDNA.eyes === 0) {
+        const styles = ['classic', 'cyclops', 'anime', 'alien', 'cute'];
+        creatureDNA.eyeStyle = styles[Math.floor(Math.random() * styles.length)];
+        creatureDNA.eyes = creatureDNA.eyeStyle === 'cyclops' ? 1 : Math.floor(Math.random() * 3) + 2;
+        logTrait(`Eyes: ${creatureDNA.eyeStyle.toUpperCase()}`);
+      }
+
+      // 55% Progress: Texture Patterning
+      if (progressRatio > 0.55 && creatureDNA.texturePattern === 'none') {
+        const patterns = ['dots', 'stripes', 'rings'];
+        creatureDNA.texturePattern = patterns[Math.floor(Math.random() * patterns.length)];
+        logTrait(`Pattern: ${creatureDNA.texturePattern.toUpperCase()}`);
+      }
+
+      // 70% Progress: Limb Extraction
+      if (progressRatio > 0.70 && creatureDNA.limbs === 0) {
+        const limbTypes = ['tentacle', 'antenna', 'feet'];
+        creatureDNA.limbType = limbTypes[Math.floor(Math.random() * limbTypes.length)];
+        creatureDNA.limbs = Math.floor(Math.random() * 3) * 2 + 2;
+        logTrait(`Limbs: ${creatureDNA.limbType.toUpperCase()}`);
+      }
+
+      // 85% Progress: Mouth Expression
+      if (progressRatio > 0.85 && creatureDNA.mouth === 'none') {
+        const mouths = ['smile', 'fang', 'surprised', 'cute'];
+        creatureDNA.mouth = mouths[Math.floor(Math.random() * mouths.length)];
+        logTrait(`Mouth: ${creatureDNA.mouth.toUpperCase()}`);
+      }
+
+      // 95% Progress: Energy Aura
+      if (progressRatio > 0.95 && !creatureDNA.aura) {
         creatureDNA.aura = true;
-        logTrait('Energy Field Active');
+        logTrait('Aura Field Engaged');
       }
-      if (progressRatio > 0.8 && creatureDNA.eyes === 1) {
-        creatureDNA.eyes = 3;
-        logTrait('Multi-ocular Mutation');
-      }
+
       if (isGold && !creatureDNA.crown) {
         creatureDNA.crown = true;
         logTrait('GOLD CORE EMBEDDED');
@@ -734,49 +770,107 @@
     }
 
     function renderCreatureSVG() {
-      const color = `hsl(${creatureDNA.hue}, 85%, 60%)`;
-      const darkColor = `hsl(${creatureDNA.hue}, 80%, 35%)`;
+      const primaryColor = `hsl(${creatureDNA.hue}, 85%, 60%)`;
+      const secondaryColor = `hsl(${creatureDNA.secondaryHue}, 80%, 45%)`;
       let svgContent = '';
 
-      // Outer Aura
+      // Layer 1: Aura
       if (creatureDNA.aura) {
-        svgContent += `<circle cx="100" cy="100" r="75" fill="none" stroke="${color}" stroke-width="3" stroke-dasharray="8 6" opacity="0.7" />`;
+        svgContent += `<circle cx="100" cy="100" r="78" fill="none" stroke="${primaryColor}" stroke-width="3" stroke-dasharray="8 6" opacity="0.8" />`;
       }
 
-      // Limbs
+      // Layer 2: Ears / Horns
+      if (creatureDNA.ears === 'bunny') {
+        svgContent += `<path d="M 75 60 Q 60 10 75 10 Q 90 10 85 60 Z" fill="${secondaryColor}" />`;
+        svgContent += `<path d="M 125 60 Q 110 10 125 10 Q 140 10 115 60 Z" fill="${secondaryColor}" />`;
+      } else if (creatureDNA.ears === 'cat') {
+        svgContent += `<polygon points="60,70 70,30 90,65" fill="${secondaryColor}" />`;
+        svgContent += `<polygon points="140,70 130,30 110,65" fill="${secondaryColor}" />`;
+      } else if (creatureDNA.ears === 'horns') {
+        svgContent += `<path d="M 65 65 Q 40 30 55 25 Q 70 30 75 60 Z" fill="#ffd700" />`;
+        svgContent += `<path d="M 135 65 Q 160 30 145 25 Q 130 30 125 60 Z" fill="#ffd700" />`;
+      }
+
+      // Layer 3: Limbs
       if (creatureDNA.limbs > 0) {
         for (let i = 0; i < creatureDNA.limbs; i++) {
-          const angle = (i / creatureDNA.limbs) * Math.PI + Math.PI * 0.2;
-          const lx = 100 + Math.cos(angle) * 60;
-          const ly = 100 + Math.sin(angle) * 60;
-          svgContent += `<line x1="100" y1="100" x2="${lx}" y2="${ly}" stroke="${darkColor}" stroke-width="8" stroke-linecap="round"/>`;
+          const angle = (i / creatureDNA.limbs) * Math.PI + Math.PI * 0.15;
+          const lx = 100 + Math.cos(angle) * 62;
+          const ly = 100 + Math.sin(angle) * 62;
+
+          if (creatureDNA.limbType === 'tentacle') {
+            svgContent += `<path d="M 100 100 Q ${100 + Math.cos(angle)*30} ${100 + Math.sin(angle)*30} ${lx} ${ly}" stroke="${secondaryColor}" stroke-width="8" stroke-linecap="round" fill="none"/>`;
+          } else if (creatureDNA.limbType === 'antenna') {
+            svgContent += `<line x1="100" y1="100" x2="${lx}" y2="${ly}" stroke="${primaryColor}" stroke-width="4"/>`;
+            svgContent += `<circle cx="${lx}" cy="${ly}" r="6" fill="#ffd700"/>`;
+          } else {
+            svgContent += `<line x1="100" y1="100" x2="${lx}" y2="${ly}" stroke="${secondaryColor}" stroke-width="10" stroke-linecap="round"/>`;
+          }
         }
       }
 
-      // Main Body
-      svgContent += `<circle cx="100" cy="100" r="48" fill="${color}" />`;
-
-      // Gold Crown Overlay
-      if (creatureDNA.crown) {
-        svgContent += `<polygon points="75,55 87,35 100,50 113,35 125,55" fill="${varProp('--gold')}" />`;
+      // Layer 4: Base Body
+      if (creatureDNA.bodyShape === 'rect') {
+        svgContent += `<rect x="52" y="52" width="96" height="96" rx="20" fill="${primaryColor}" />`;
+      } else if (creatureDNA.bodyShape === 'blob') {
+        svgContent += `<path d="M 100,45 C 155,40 165,85 155,135 C 135,165 65,160 45,125 C 25,85 45,45 100,45 Z" fill="${primaryColor}" />`;
+      } else if (creatureDNA.bodyShape === 'oval') {
+        svgContent += `<ellipse cx="100" cy="100" rx="58" ry="42" fill="${primaryColor}" />`;
+      } else if (creatureDNA.bodyShape === 'star') {
+        svgContent += `<polygon points="100,40 115,75 150,75 120,98 132,135 100,112 68,135 80,98 50,75 85,75" fill="${primaryColor}" />`;
+      } else {
+        svgContent += `<circle cx="100" cy="100" r="48" fill="${primaryColor}" />`;
       }
 
-      // Eyes
-      if (creatureDNA.eyes === 1) {
-        svgContent += `<circle cx="100" cy="95" r="9" fill="#fff"/><circle cx="100" cy="95" r="4" fill="#000"/>`;
-      } else if (creatureDNA.eyes >= 3) {
-        svgContent += `
-          <circle cx="85" cy="95" r="8" fill="#fff"/><circle cx="85" cy="95" r="3" fill="#000"/>
-          <circle cx="115" cy="95" r="8" fill="#fff"/><circle cx="115" cy="95" r="3" fill="#000"/>
-          <circle cx="100" cy="80" r="6" fill="#fff"/><circle cx="100" cy="80" r="2" fill="#000"/>
-        `;
+      // Layer 5: Body Texture Overlay
+      if (creatureDNA.texturePattern === 'dots') {
+        svgContent += `<circle cx="85" cy="85" r="4" fill="${secondaryColor}" opacity="0.6"/>`;
+        svgContent += `<circle cx="115" cy="115" r="6" fill="${secondaryColor}" opacity="0.6"/>`;
+        svgContent += `<circle cx="90" cy="120" r="3" fill="${secondaryColor}" opacity="0.6"/>`;
+      } else if (creatureDNA.texturePattern === 'stripes') {
+        svgContent += `<line x1="70" y1="80" x2="130" y2="80" stroke="${secondaryColor}" stroke-width="4" opacity="0.5"/>`;
+        svgContent += `<line x1="65" y1="110" x2="135" y2="110" stroke="${secondaryColor}" stroke-width="4" opacity="0.5"/>`;
+      }
+
+      // Layer 6: Crown
+      if (creatureDNA.crown) {
+        svgContent += `<polygon points="75,50 87,30 100,45 113,30 125,50" fill="#ffd700" />`;
+      }
+
+      // Layer 7: Eyes
+      if (creatureDNA.eyes > 0) {
+        if (creatureDNA.eyeStyle === 'cyclops') {
+          svgContent += `<circle cx="100" cy="90" r="14" fill="#fff"/><circle cx="100" cy="90" r="6" fill="#000"/><circle cx="103" cy="87" r="2" fill="#fff"/>`;
+        } else if (creatureDNA.eyeStyle === 'anime') {
+          svgContent += `
+            <ellipse cx="85" cy="92" rx="8" ry="12" fill="#fff"/><ellipse cx="85" cy="92" rx="4" ry="7" fill="#00f0ff"/>
+            <ellipse cx="115" cy="92" rx="8" ry="12" fill="#fff"/><ellipse cx="115" cy="92" rx="4" ry="7" fill="#00f0ff"/>
+          `;
+        } else if (creatureDNA.eyeStyle === 'alien') {
+          svgContent += `
+            <polygon points="75,85 92,92 80,102" fill="#000"/>
+            <polygon points="125,85 108,92 120,102" fill="#000"/>
+          `;
+        } else {
+          svgContent += `
+            <circle cx="85" cy="92" r="8" fill="#fff"/><circle cx="85" cy="92" r="3" fill="#000"/>
+            <circle cx="115" cy="92" r="8" fill="#fff"/><circle cx="115" cy="92" r="3" fill="#000"/>
+          `;
+        }
+      }
+
+      // Layer 8: Mouth
+      if (creatureDNA.mouth === 'smile') {
+        svgContent += `<path d="M 88 112 Q 100 124 112 112" stroke="#000" stroke-width="3" fill="none" stroke-linecap="round"/>`;
+      } else if (creatureDNA.mouth === 'fang') {
+        svgContent += `<path d="M 88 110 L 112 110 L 100 120 Z" fill="#fff" stroke="#000" stroke-width="2"/>`;
+      } else if (creatureDNA.mouth === 'surprised') {
+        svgContent += `<circle cx="100" cy="114" r="5" fill="#000"/>`;
+      } else if (creatureDNA.mouth === 'cute') {
+        svgContent += `<path d="M 90 112 Q 95 118 100 112 Q 105 118 110 112" stroke="#000" stroke-width="2.5" fill="none" stroke-linecap="round"/>`;
       }
 
       creatureSvg.innerHTML = svgContent;
-    }
-
-    function varProp(name) {
-      return getComputedStyle(document.documentElement).getPropertyValue(name).trim();
     }
 
     function triggerWin() {
@@ -792,9 +886,28 @@
     function resetStream() {
       winModal.classList.remove('visible');
       totalPopped = 0;
+      
+      // Calculate new random target threshold (60 - 150)
+      mintTarget = Math.floor(Math.random() * (150 - 60 + 1)) + 60;
       poppedDisplay.textContent = '0';
-      creatureDNA = { hue: 180, bodyShape: 'circle', eyes: 0, limbs: 0, aura: false, crown: false };
-      dnaLog.innerHTML = '<div class="dna-item"><span>Stream Status</span><span style="color: var(--accent);">Active Flow</span></div>';
+      
+      // Reset DNA state
+      creatureDNA = {
+        hue: Math.floor(Math.random() * 360),
+        secondaryHue: 240,
+        bodyShape: 'circle',
+        texturePattern: 'none',
+        eyes: 0,
+        eyeStyle: 'classic',
+        limbs: 0,
+        limbType: 'tentacle',
+        ears: 'none',
+        mouth: 'none',
+        aura: false,
+        crown: false
+      };
+
+      dnaLog.innerHTML = `<div class="dna-item"><span>Stream Status</span><span style="color: var(--accent);">Target: ${mintTarget} Pops</span></div>`;
       updateProgress();
       renderCreatureSVG();
     }
@@ -803,13 +916,11 @@
     function animate() {
       ctx.clearRect(0, 0, canvas.width, canvas.height);
 
-      // Render falling bubbles
       bubbles.forEach(b => {
         b.update();
         b.draw();
       });
 
-      // Render popping particle effects
       particles.forEach((p, idx) => {
         p.update();
         p.draw();
@@ -823,7 +934,7 @@
     window.addEventListener('resize', resizeCanvas);
     resizeCanvas();
     initStream();
-    renderCreatureSVG();
+    resetStream();
     animate();
   </script>
 </body>
