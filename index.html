@@ -1,0 +1,799 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>THE COLONY — Minting Experience</title>
+  <style>
+    :root {
+      --bg: #07090e;
+      --card-bg: rgba(18, 22, 36, 0.75);
+      --accent-glow: #00f0ff;
+      --gold-glow: #ffd700;
+      --pink-glow: #ff007f;
+      --text: #e2e8f0;
+    }
+
+    * {
+      box-sizing: border-box;
+      margin: 0;
+      padding: 0;
+      user-select: none;
+    }
+
+    body {
+      background: var(--bg);
+      color: var(--text);
+      font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Helvetica, Arial, sans-serif;
+      min-height: 100vh;
+      display: flex;
+      flex-direction: column;
+      overflow-x: hidden;
+    }
+
+    /* Ambient background mesh */
+    body::before {
+      content: '';
+      position: fixed;
+      top: 0; left: 0; width: 100vw; height: 100vh;
+      background: 
+        radial-gradient(circle at 20% 20%, rgba(0, 240, 255, 0.08) 0%, transparent 40%),
+        radial-gradient(circle at 80% 80%, rgba(255, 0, 127, 0.08) 0%, transparent 40%);
+      pointer-events: none;
+      z-index: 0;
+    }
+
+    header {
+      z-index: 10;
+      padding: 1.5rem 2rem;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      border-bottom: 1px solid rgba(255, 255, 255, 0.08);
+      backdrop-filter: blur(12px);
+    }
+
+    .brand {
+      display: flex;
+      align-items: center;
+      gap: 0.75rem;
+    }
+
+    .brand-title {
+      font-size: 1.25rem;
+      font-weight: 900;
+      letter-spacing: 0.15em;
+      text-transform: uppercase;
+      background: linear-gradient(135deg, #fff, var(--accent-glow));
+      -webkit-background-clip: text;
+      -webkit-text-fill-color: transparent;
+    }
+
+    .live-badge {
+      display: flex;
+      align-items: center;
+      gap: 0.4rem;
+      background: rgba(0, 240, 255, 0.1);
+      border: 1px solid rgba(0, 240, 255, 0.3);
+      padding: 0.25rem 0.6rem;
+      border-radius: 999px;
+      font-size: 0.75rem;
+      color: var(--accent-glow);
+    }
+
+    .live-dot {
+      width: 6px;
+      height: 6px;
+      background: var(--accent-glow);
+      border-radius: 50%;
+      box-shadow: 0 0 8px var(--accent-glow);
+      animation: pulse 1.5s infinite;
+    }
+
+    @keyframes pulse {
+      0%, 100% { opacity: 1; }
+      50% { opacity: 0.3; }
+    }
+
+    .stats-bar {
+      display: flex;
+      gap: 2rem;
+      font-size: 0.9rem;
+    }
+
+    .stat-item {
+      display: flex;
+      flex-direction: column;
+      align-items: flex-end;
+    }
+
+    .stat-label {
+      font-size: 0.7rem;
+      text-transform: uppercase;
+      color: #64748b;
+      letter-spacing: 0.05em;
+    }
+
+    .stat-val {
+      font-weight: 700;
+      font-family: monospace;
+      font-size: 1.1rem;
+    }
+
+    .gold-text {
+      color: var(--gold-glow);
+      text-shadow: 0 0 10px rgba(255, 215, 0, 0.3);
+    }
+
+    main {
+      z-index: 1;
+      flex: 1;
+      display: grid;
+      grid-template-columns: 1fr 340px;
+      gap: 2rem;
+      padding: 2rem;
+      max-width: 1400px;
+      margin: 0 auto;
+      width: 100%;
+    }
+
+    @media (max-width: 968px) {
+      main {
+        grid-template-columns: 1fr;
+      }
+    }
+
+    /* Bubble Field Stage */
+    .field-container {
+      position: relative;
+      background: var(--card-bg);
+      border: 1px solid rgba(255, 255, 255, 0.08);
+      border-radius: 24px;
+      overflow: hidden;
+      display: flex;
+      flex-direction: column;
+      box-shadow: 0 20px 50px rgba(0, 0, 0, 0.5);
+    }
+
+    canvas {
+      width: 100%;
+      height: 100%;
+      cursor: pointer;
+      touch-action: none;
+    }
+
+    /* Creature Incubator Sidebar */
+    .sidebar {
+      display: flex;
+      flex-direction: column;
+      gap: 1.5rem;
+    }
+
+    .incubator-card {
+      background: var(--card-bg);
+      border: 1px solid rgba(255, 255, 255, 0.08);
+      border-radius: 24px;
+      padding: 1.5rem;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      position: relative;
+      overflow: hidden;
+      backdrop-filter: blur(12px);
+    }
+
+    .card-title {
+      font-size: 0.8rem;
+      text-transform: uppercase;
+      letter-spacing: 0.1em;
+      color: #94a3b8;
+      margin-bottom: 1rem;
+      width: 100%;
+      text-align: left;
+    }
+
+    .creature-viewport {
+      width: 240px;
+      height: 240px;
+      position: relative;
+      background: radial-gradient(circle, rgba(255,255,255,0.03) 0%, transparent 70%);
+      border-radius: 50%;
+      display: flex;
+      justify-content: center;
+      align-items: center;
+    }
+
+    .creature-svg {
+      width: 100%;
+      height: 100%;
+      filter: drop-shadow(0 0 15px rgba(0, 240, 255, 0.2));
+      transition: filter 0.3s ease;
+    }
+
+    .dna-log {
+      width: 100%;
+      margin-top: 1rem;
+      display: flex;
+      flex-direction: column;
+      gap: 0.5rem;
+    }
+
+    .dna-item {
+      display: flex;
+      justify-content: space-between;
+      font-size: 0.75rem;
+      padding: 0.4rem 0.6rem;
+      background: rgba(255, 255, 255, 0.03);
+      border-radius: 8px;
+      border-left: 3px solid #334155;
+      animation: slideIn 0.3s ease;
+    }
+
+    @keyframes slideIn {
+      from { opacity: 0; transform: translateX(10px); }
+      to { opacity: 1; transform: translateX(0); }
+    }
+
+    .dna-item.active {
+      border-left-color: var(--accent-glow);
+    }
+
+    /* Modal States */
+    .modal-overlay {
+      position: fixed;
+      top: 0; left: 0; width: 100vw; height: 100vh;
+      background: rgba(0, 0, 0, 0.85);
+      backdrop-filter: blur(16px);
+      z-index: 100;
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      opacity: 0;
+      pointer-events: none;
+      transition: opacity 0.4s ease;
+    }
+
+    .modal-overlay.visible {
+      opacity: 1;
+      pointer-events: auto;
+    }
+
+    .modal-box {
+      background: #0d111a;
+      border: 1px solid rgba(255, 255, 255, 0.15);
+      border-radius: 28px;
+      padding: 2.5rem;
+      max-width: 440px;
+      width: 90%;
+      text-align: center;
+      position: relative;
+      transform: scale(0.9);
+      transition: transform 0.4s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+      box-shadow: 0 30px 60px rgba(0,0,0,0.8);
+    }
+
+    .modal-overlay.visible .modal-box {
+      transform: scale(1);
+    }
+
+    .modal-title {
+      font-size: 1.8rem;
+      font-weight: 900;
+      margin-bottom: 0.5rem;
+      letter-spacing: 0.05em;
+    }
+
+    .modal-subtitle {
+      color: #94a3b8;
+      font-size: 0.9rem;
+      margin-bottom: 1.5rem;
+    }
+
+    .card-preview {
+      background: linear-gradient(180deg, rgba(255,255,255,0.05) 0%, rgba(255,255,255,0.01) 100%);
+      border: 1px solid rgba(255,255,255,0.1);
+      border-radius: 20px;
+      padding: 1.5rem;
+      margin-bottom: 1.5rem;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+    }
+
+    .btn {
+      width: 100%;
+      padding: 0.9rem 1.5rem;
+      border-radius: 12px;
+      border: none;
+      font-weight: 700;
+      font-size: 0.9rem;
+      cursor: pointer;
+      transition: all 0.2s ease;
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      gap: 0.5rem;
+    }
+
+    .btn-primary {
+      background: linear-gradient(135deg, var(--gold-glow), #ffaa00);
+      color: #000;
+      box-shadow: 0 0 20px rgba(255, 215, 0, 0.4);
+    }
+
+    .btn-primary:hover {
+      transform: translateY(-2px);
+      box-shadow: 0 0 30px rgba(255, 215, 0, 0.6);
+    }
+
+    .btn-share {
+      background: rgba(255, 255, 255, 0.1);
+      color: #fff;
+      border: 1px solid rgba(255, 255, 255, 0.2);
+    }
+
+    .btn-share:hover {
+      background: rgba(255, 255, 255, 0.15);
+    }
+
+    .btn-secondary {
+      background: transparent;
+      color: #64748b;
+      margin-top: 0.5rem;
+    }
+
+    .btn-secondary:hover {
+      color: #fff;
+    }
+  </style>
+</head>
+<body>
+
+  <header>
+    <div class="brand">
+      <div class="brand-title">The Colony</div>
+      <div class="live-badge">
+        <div class="live-dot"></div>
+        <span>FIELD LIVE</span>
+      </div>
+    </div>
+    <div class="stats-bar">
+      <div class="stat-item">
+        <span class="stat-label">Cores Remaining</span>
+        <span class="stat-val gold-text" id="cores-count">1,842</span>
+      </div>
+      <div class="stat-item">
+        <span class="stat-label">Pops Left</span>
+        <span class="stat-val" id="pops-count">30</span>
+      </div>
+    </div>
+  </header>
+
+  <main>
+    <div class="field-container">
+      <canvas id="fieldCanvas"></canvas>
+    </div>
+
+    <div class="sidebar">
+      <div class="incubator-card">
+        <div class="card-title">Incubating Creature</div>
+        <div class="creature-viewport">
+          <svg class="creature-svg" id="creatureSvg" viewBox="0 0 200 200">
+            <!-- Dynamic SVG elements injected via JS -->
+          </svg>
+        </div>
+        <div class="dna-log" id="dnaLog">
+          <div class="dna-item">
+            <span>Base Seed</span>
+            <span style="color: #64748b;">Unassigned</span>
+          </div>
+        </div>
+      </div>
+    </div>
+  </main>
+
+  <!-- WIN MODAL -->
+  <div class="modal-overlay" id="winModal">
+    <div class="modal-box">
+      <div class="modal-title gold-text">CORE UNCOVERED!</div>
+      <div class="modal-subtitle">You struck an active core. Your unique specimen is ready to mint instantly.</div>
+      <div class="card-preview" id="winPreview">
+        <!-- SVG clone will be injected here -->
+      </div>
+      <button class="btn btn-primary" onclick="alert('Mint Transaction Executed!')">MINT SPECIMEN #1842</button>
+      <button class="btn btn-secondary" onclick="resetGame()">Try Another Field</button>
+    </div>
+  </div>
+
+  <!-- NEAR MISS MODAL -->
+  <div class="modal-overlay" id="lossModal">
+    <div class="modal-box">
+      <div class="modal-title" style="color: var(--accent-glow)">NEAR MISS</div>
+      <div class="modal-subtitle">Out of pops! You didn't reach a core, but you generated a unique fragment creature.</div>
+      <div class="card-preview" id="lossPreview">
+        <!-- SVG clone will be injected here -->
+      </div>
+      <button class="btn btn-share" onclick="copyNearMissLink()">Share "Near Miss" Card</button>
+      <button class="btn btn-secondary" onclick="resetGame()">Re-enter Field</button>
+    </div>
+  </div>
+
+  <script>
+    // --- AUDIO SYNTHESIS ENGINE (Web Audio API) ---
+    class SoundEngine {
+      constructor() {
+        this.ctx = new (window.AudioContext || window.webkitAudioContext)();
+      }
+
+      playPop() {
+        if (this.ctx.state === 'suspended') this.ctx.resume();
+        const osc = this.ctx.createOscillator();
+        const gain = this.ctx.createGain();
+
+        // Randomize pitch slightly for satisfying tactile feedback
+        const pitch = 300 + Math.random() * 250;
+        osc.type = 'sine';
+        osc.frequency.setValueAtTime(pitch, this.ctx.currentTime);
+        osc.frequency.exponentialRampToValueAtTime(80, this.ctx.currentTime + 0.08);
+
+        gain.gain.setValueAtTime(0.4, this.ctx.currentTime);
+        gain.gain.exponentialRampToValueAtTime(0.01, this.ctx.currentTime + 0.08);
+
+        osc.connect(gain);
+        gain.connect(this.ctx.destination);
+
+        osc.start();
+        osc.stop(this.ctx.currentTime + 0.08);
+      }
+
+      playCoreHit() {
+        if (this.ctx.state === 'suspended') this.ctx.resume();
+        
+        // Arpeggio chime effect
+        [523.25, 659.25, 783.99, 1046.50].forEach((freq, i) => {
+          setTimeout(() => {
+            const osc = this.ctx.createOscillator();
+            const gain = this.ctx.createGain();
+            osc.type = 'triangle';
+            osc.frequency.value = freq;
+            gain.gain.setValueAtTime(0.3, this.ctx.currentTime);
+            gain.gain.exponentialRampToValueAtTime(0.001, this.ctx.currentTime + 0.5);
+            osc.connect(gain);
+            gain.connect(this.ctx.destination);
+            osc.start();
+            osc.stop(this.ctx.currentTime + 0.5);
+          }, i * 80);
+        });
+      }
+    }
+
+    const audio = new SoundEngine();
+
+    // --- GAME STATE ---
+    const MAX_POPS = 30;
+    let popsLeft = MAX_POPS;
+    let coresRemaining = 1842;
+    let gameActive = true;
+    let creatureDNA = {
+      hue: 180,
+      bodyShape: 'circle',
+      eyes: 1,
+      texture: 'none',
+      aura: false,
+      limbs: 0
+    };
+
+    // DOM Elements
+    const canvas = document.getElementById('fieldCanvas');
+    const ctx = canvas.getContext('2d');
+    const popsDisplay = document.getElementById('pops-count');
+    const coresDisplay = document.getElementById('cores-count');
+    const dnaLog = document.getElementById('dnaLog');
+    const creatureSvg = document.getElementById('creatureSvg');
+    const winModal = document.getElementById('winModal');
+    const lossModal = document.getElementById('lossModal');
+
+    // --- BUBBLE CANVAS ENGINE ---
+    let bubbles = [];
+    let particles = [];
+    const BUBBLE_RADIUS = 28;
+    const SPACING = 65;
+
+    function resizeCanvas() {
+      const rect = canvas.parentElement.getBoundingClientRect();
+      canvas.width = rect.width;
+      canvas.height = rect.height;
+      initBubbles();
+    }
+
+    class Bubble {
+      constructor(x, y, isCore = false) {
+        this.x = x;
+        this.y = y;
+        this.radius = BUBBLE_RADIUS;
+        this.isCore = isCore;
+        this.popped = false;
+        this.scale = 1;
+        this.pulseSpeed = 0.02 + Math.random() * 0.02;
+        this.pulseOffset = Math.random() * Math.PI * 2;
+      }
+
+      draw() {
+        if (this.popped) return;
+
+        ctx.save();
+        ctx.translate(this.x, this.y);
+
+        // Idle wobble effect
+        const currentScale = this.scale + Math.sin(Date.now() * 0.003 + this.pulseOffset) * 0.04;
+        ctx.scale(currentScale, currentScale);
+
+        // Outer glow gradient
+        const grad = ctx.createRadialGradient(
+          -this.radius * 0.3, -this.radius * 0.3, this.radius * 0.1,
+          0, 0, this.radius
+        );
+
+        if (this.isCore) {
+          grad.addColorStop(0, 'rgba(255, 230, 120, 0.9)');
+          grad.addColorStop(0.6, 'rgba(255, 180, 0, 0.4)');
+          grad.addColorStop(1, 'rgba(255, 140, 0, 0.1)');
+        } else {
+          grad.addColorStop(0, 'rgba(255, 255, 255, 0.4)');
+          grad.addColorStop(0.5, 'rgba(0, 240, 255, 0.15)');
+          grad.addColorStop(1, 'rgba(0, 100, 200, 0.05)');
+        }
+
+        ctx.beginPath();
+        ctx.arc(0, 0, this.radius, 0, Math.PI * 2);
+        ctx.fillStyle = grad;
+        ctx.fill();
+
+        // High glossy rim
+        ctx.strokeStyle = this.isCore ? 'rgba(255, 215, 0, 0.6)' : 'rgba(255, 255, 255, 0.3)';
+        ctx.lineWidth = 1.5;
+        ctx.stroke();
+
+        // Specular highlight spot
+        ctx.beginPath();
+        ctx.arc(-this.radius * 0.35, -this.radius * 0.35, this.radius * 0.25, 0, Math.PI * 2);
+        ctx.fillStyle = 'rgba(255, 255, 255, 0.6)';
+        ctx.fill();
+
+        ctx.restore();
+      }
+    }
+
+    class Particle {
+      constructor(x, y, color) {
+        this.x = x;
+        this.y = y;
+        this.vx = (Math.random() - 0.5) * 8;
+        this.vy = (Math.random() - 0.5) * 8;
+        this.radius = Math.random() * 4 + 2;
+        this.color = color;
+        this.alpha = 1;
+        this.decay = 0.03 + Math.random() * 0.02;
+      }
+
+      update() {
+        this.x += this.vx;
+        this.y += this.vy;
+        this.alpha -= this.decay;
+      }
+
+      draw() {
+        ctx.save();
+        ctx.globalAlpha = Math.max(0, this.alpha);
+        ctx.beginPath();
+        ctx.arc(this.x, this.y, this.radius, 0, Math.PI * 2);
+        ctx.fillStyle = this.color;
+        ctx.fill();
+        ctx.restore();
+      }
+    }
+
+    function initBubbles() {
+      bubbles = [];
+      const cols = Math.floor(canvas.width / SPACING);
+      const rows = Math.floor(canvas.height / SPACING);
+      const offsetX = (canvas.width - cols * SPACING) / 2 + SPACING / 2;
+      const offsetY = (canvas.height - rows * SPACING) / 2 + SPACING / 2;
+
+      // Pick 2 hidden cores in the grid for demonstration
+      const total = cols * rows;
+      const coreIndices = new Set();
+      while(coreIndices.size < 2 && total > 0) {
+        coreIndices.add(Math.floor(Math.random() * total));
+      }
+
+      let idx = 0;
+      for (let r = 0; r < rows; r++) {
+        for (let c = 0; c < cols; c++) {
+          const x = offsetX + c * SPACING;
+          const y = offsetY + r * SPACING;
+          bubbles.push(new Bubble(x, y, coreIndices.has(idx)));
+          idx++;
+        }
+      }
+    }
+
+    function createPopParticles(x, y, isCore) {
+      const color = isCore ? '#ffd700' : '#00f0ff';
+      for (let i = 0; i < 16; i++) {
+        particles.push(new Particle(x, y, color));
+      }
+    }
+
+    function animate() {
+      ctx.clearRect(0, 0, canvas.width, canvas.height);
+
+      // Render bubbles
+      bubbles.forEach(b => b.draw());
+
+      // Update & render particles
+      particles.forEach((p, idx) => {
+        p.update();
+        p.draw();
+        if (p.alpha <= 0) particles.splice(idx, 1);
+      });
+
+      requestAnimationFrame(animate);
+    }
+
+    // --- POP MECHANIC & EVOLUTION ENGINE ---
+    canvas.addEventListener('pointerdown', (e) => {
+      if (!gameActive || popsLeft <= 0) return;
+
+      const rect = canvas.getBoundingClientRect();
+      const clickX = e.clientX - rect.left;
+      const clickY = e.clientY - rect.top;
+
+      bubbles.forEach(b => {
+        if (!b.popped) {
+          const dist = Math.hypot(clickX - b.x, clickY - b.y);
+          if (dist < BUBBLE_RADIUS) {
+            popBubble(b);
+          }
+        }
+      });
+    });
+
+    function popBubble(bubble) {
+      bubble.popped = true;
+      popsLeft--;
+      popsDisplay.textContent = popsLeft;
+
+      createPopParticles(bubble.x, bubble.y, bubble.isCore);
+
+      if (bubble.isCore) {
+        audio.playCoreHit();
+        coresRemaining--;
+        coresDisplay.textContent = coresRemaining.toLocaleString();
+        gameActive = false;
+        evolveCreature(true);
+        setTimeout(() => triggerModal(winModal, 'winPreview'), 600);
+      } else {
+        audio.playPop();
+        evolveCreature(false);
+
+        if (popsLeft === 0) {
+          gameActive = false;
+          setTimeout(() => triggerModal(lossModal, 'lossPreview'), 600);
+        }
+      }
+    }
+
+    function evolveCreature(isCore) {
+      // Procedurally modify DNA based on pop sequence
+      creatureDNA.hue = (creatureDNA.hue + 25) % 360;
+
+      const traits = ['Color Shift', 'Morphology', 'Eye Unlocked', 'Texture Stack', 'Limb Node', 'Aura Emission'];
+      let unlockedTrait = traits[Math.floor(Math.random() * traits.length)];
+
+      if (isCore) unlockedTrait = 'CORE ELEMENT (GOLD)';
+
+      if (unlockedTrait.includes('Morphology')) {
+        const shapes = ['circle', 'rect', 'blob'];
+        creatureDNA.bodyShape = shapes[Math.floor(Math.random() * shapes.length)];
+      } else if (unlockedTrait.includes('Eye')) {
+        creatureDNA.eyes = Math.min(5, creatureDNA.eyes + 1);
+      } else if (unlockedTrait.includes('Limb')) {
+        creatureDNA.limbs = Math.min(6, creatureDNA.limbs + 2);
+      } else if (unlockedTrait.includes('Aura')) {
+        creatureDNA.aura = true;
+      }
+
+      renderCreatureSVG();
+
+      // Update Sidebar Log
+      const item = document.createElement('div');
+      item.className = 'dna-item active';
+      item.innerHTML = `<span>Pop #${MAX_POPS - popsLeft}</span><span style="color:var(--accent-glow)">${unlockedTrait}</span>`;
+      dnaLog.prepend(item);
+    }
+
+    function renderCreatureSVG() {
+      const color = `hsl(${creatureDNA.hue}, 85%, 60%)`;
+      const darkColor = `hsl(${creatureDNA.hue}, 80%, 35%)`;
+      
+      let svgContent = '';
+
+      // Aura Layer
+      if (creatureDNA.aura) {
+        svgContent += `<circle cx="100" cy="100" r="75" fill="none" stroke="${color}" stroke-width="4" stroke-dasharray="6 6" opacity="0.6" />`;
+      }
+
+      // Limbs Layer
+      if (creatureDNA.limbs > 0) {
+        for (let i = 0; i < creatureDNA.limbs; i++) {
+          const angle = (i / creatureDNA.limbs) * Math.PI * 2;
+          const lx = 100 + Math.cos(angle) * 55;
+          const ly = 100 + Math.sin(angle) * 55;
+          svgContent += `<line x1="100" y1="100" x2="${lx}" y2="${ly}" stroke="${darkColor}" stroke-width="8" stroke-linecap="round"/>`;
+        }
+      }
+
+      // Base Body Morphology
+      if (creatureDNA.bodyShape === 'rect') {
+        svgContent += `<rect x="50" y="50" width="100" height="100" rx="24" fill="${color}" />`;
+      } else if (creatureDNA.bodyShape === 'blob') {
+        svgContent += `<path d="M 100,40 C 150,40 160,80 150,130 C 140,160 70,160 50,120 C 30,80 50,40 100,40 Z" fill="${color}" />`;
+      } else {
+        svgContent += `<circle cx="100" cy="100" r="50" fill="${color}" />`;
+      }
+
+      // Eye Layer
+      const eyePositions = [
+        [{x: 100, y: 95}],
+        [{x: 85, y: 95}, {x: 115, y: 95}],
+        [{x: 75, y: 95}, {x: 100, y: 85}, {x: 125, y: 95}],
+        [{x: 85, y: 85}, {x: 115, y: 85}, {x: 85, y: 110}, {x: 115, y: 110}]
+      ];
+
+      const eyesToDraw = eyePositions[Math.min(creatureDNA.eyes - 1, eyePositions.length - 1)];
+      eyesToDraw.forEach(pos => {
+        svgContent += `
+          <circle cx="${pos.x}" cy="${pos.y}" r="10" fill="#fff" />
+          <circle cx="${pos.x}" cy="${pos.y}" r="4" fill="#000" />
+        `;
+      });
+
+      creatureSvg.innerHTML = svgContent;
+    }
+
+    function triggerModal(modal, previewId) {
+      const target = document.getElementById(previewId);
+      target.innerHTML = '';
+      const clone = creatureSvg.cloneNode(true);
+      clone.style.width = '160px';
+      clone.style.height = '160px';
+      target.appendChild(clone);
+      modal.classList.add('visible');
+    }
+
+    function resetGame() {
+      winModal.classList.remove('visible');
+      lossModal.classList.remove('visible');
+      popsLeft = MAX_POPS;
+      popsDisplay.textContent = popsLeft;
+      gameActive = true;
+      creatureDNA = { hue: 180, bodyShape: 'circle', eyes: 1, texture: 'none', aura: false, limbs: 0 };
+      dnaLog.innerHTML = '<div class="dna-item"><span>Base Seed</span><span style="color: #64748b;">Unassigned</span></div>';
+      renderCreatureSVG();
+      initBubbles();
+    }
+
+    function copyNearMissLink() {
+      navigator.clipboard.writeText(window.location.href);
+      alert('"Near Miss" Card copied to clipboard! Share your creation on Twitter/X.');
+    }
+
+    // Initialize Canvas & Game Loops
+    window.addEventListener('resize', resizeCanvas);
+    resizeCanvas();
+    renderCreatureSVG();
+    animate();
+  </script>
+</body>
+</html>
