@@ -3,7 +3,7 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-  <title>THE COLONY — Endless Stream Mint</title>
+  <title>THE COLONY — Incubator & Holographic Mint</title>
   <style>
     :root {
       --bg: #05070c;
@@ -33,7 +33,6 @@
       flex-direction: column;
     }
 
-    /* Ambient background lighting */
     body::before {
       content: '';
       position: fixed;
@@ -54,12 +53,6 @@
       border-bottom: 1px solid rgba(255, 255, 255, 0.08);
       backdrop-filter: blur(12px);
       background: rgba(5, 7, 12, 0.6);
-    }
-
-    .brand {
-      display: flex;
-      align-items: center;
-      gap: 0.75rem;
     }
 
     .brand-title {
@@ -106,11 +99,10 @@
       z-index: 1;
       flex: 1;
       display: grid;
-      grid-template-columns: 1fr 340px;
+      grid-template-columns: 1fr 360px;
       gap: 1rem;
       padding: 1rem;
       height: calc(100vh - 70px);
-      box-sizing: border-box;
     }
 
     @media (max-width: 850px) {
@@ -119,11 +111,10 @@
         grid-template-rows: 1fr auto;
       }
       .sidebar {
-        height: 220px;
+        height: 240px;
       }
     }
 
-    /* Fall Stream Stage */
     .field-container {
       position: relative;
       background: var(--card-bg);
@@ -140,7 +131,6 @@
       touch-action: none;
     }
 
-    /* Overlay Floating Stream Controls */
     .stream-overlay {
       position: absolute;
       top: 1rem;
@@ -165,7 +155,23 @@
       opacity: 1;
     }
 
-    /* Incubator Sidebar */
+    .overcharge-badge {
+      background: linear-gradient(90deg, var(--gold), var(--pink));
+      color: #000;
+      font-size: 0.7rem;
+      font-weight: 900;
+      padding: 0.3rem 0.6rem;
+      border-radius: 6px;
+      letter-spacing: 0.1em;
+      display: none;
+      animation: pulse 1s infinite alternate;
+    }
+
+    @keyframes pulse {
+      from { transform: scale(1); box-shadow: 0 0 5px var(--gold); }
+      to { transform: scale(1.05); box-shadow: 0 0 15px var(--pink); }
+    }
+
     .sidebar {
       display: flex;
       flex-direction: column;
@@ -183,11 +189,11 @@
       height: 100%;
       justify-content: space-between;
       backdrop-filter: blur(12px);
+      position: relative;
     }
 
     .progress-box {
       width: 100%;
-      margin-bottom: 0.5rem;
     }
 
     .progress-header {
@@ -217,21 +223,38 @@
       transition: width 0.15s ease-out;
     }
 
+    /* Incubator Chamber Viewport */
     .creature-viewport {
-      width: 200px;
-      height: 200px;
+      width: 210px;
+      height: 210px;
       position: relative;
-      background: radial-gradient(circle, rgba(255,255,255,0.04) 0%, transparent 70%);
+      background: radial-gradient(circle, rgba(0, 240, 255, 0.06) 0%, transparent 75%);
       border-radius: 50%;
       display: flex;
       justify-content: center;
       align-items: center;
+      border: 1px solid rgba(0, 240, 255, 0.2);
+      box-shadow: 0 0 30px rgba(0, 240, 255, 0.1);
+    }
+
+    .creature-viewport.flash {
+      animation: arcFlash 0.3s ease-out;
+    }
+
+    @keyframes arcFlash {
+      0% { border-color: var(--gold); box-shadow: 0 0 40px var(--gold); }
+      100% { border-color: rgba(0, 240, 255, 0.2); box-shadow: 0 0 30px rgba(0, 240, 255, 0.1); }
     }
 
     .creature-svg {
       width: 100%;
       height: 100%;
-      filter: drop-shadow(0 0 15px rgba(0, 240, 255, 0.3));
+      filter: drop-shadow(0 0 15px rgba(0, 240, 255, 0.4));
+      transition: transform 0.3s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+    }
+
+    .creature-svg.snap {
+      transform: scale(1.15);
     }
 
     .dna-log {
@@ -239,7 +262,7 @@
       display: flex;
       flex-direction: column;
       gap: 0.4rem;
-      max-height: 120px;
+      max-height: 110px;
       overflow-y: auto;
     }
 
@@ -263,8 +286,8 @@
     .modal-overlay {
       position: fixed;
       top: 0; left: 0; width: 100vw; height: 100vh;
-      background: rgba(0, 0, 0, 0.85);
-      backdrop-filter: blur(16px);
+      background: rgba(0, 0, 0, 0.88);
+      backdrop-filter: blur(20px);
       z-index: 100;
       display: flex;
       justify-content: center;
@@ -282,40 +305,117 @@
     .modal-box {
       background: #0b0f19;
       border: 1px solid rgba(255, 255, 255, 0.15);
-      border-radius: 24px;
+      border-radius: 28px;
       padding: 2rem;
-      max-width: 420px;
+      max-width: 440px;
       width: 90%;
       text-align: center;
-      box-shadow: 0 30px 60px rgba(0,0,0,0.9);
+      box-shadow: 0 30px 60px rgba(0,0,0,0.95);
+      perspective: 1000px;
     }
 
     .modal-title {
-      font-size: 1.6rem;
+      font-size: 1.5rem;
       font-weight: 900;
-      margin-bottom: 0.4rem;
+      margin-bottom: 0.2rem;
     }
 
     .modal-subtitle {
       color: #94a3b8;
-      font-size: 0.85rem;
-      margin-bottom: 1.25rem;
+      font-size: 0.8rem;
+      margin-bottom: 1.2rem;
     }
 
-    .card-preview {
-      background: rgba(255, 255, 255, 0.03);
-      border: 1px solid rgba(255, 255, 255, 0.1);
-      border-radius: 16px;
-      padding: 1.25rem;
+    /* Holographic 3D Tilt Card */
+    .card-container {
+      perspective: 1000px;
       margin-bottom: 1.25rem;
       display: flex;
       justify-content: center;
     }
 
+    .holo-card {
+      width: 220px;
+      height: 300px;
+      background: linear-gradient(135deg, rgba(255,255,255,0.05), rgba(255,255,255,0.01));
+      border: 1px solid rgba(255, 255, 255, 0.2);
+      border-radius: 18px;
+      position: relative;
+      overflow: hidden;
+      transform-style: preserve-3d;
+      transition: transform 0.1s ease-out;
+      box-shadow: 0 15px 35px rgba(0,0,0,0.5);
+      cursor: pointer;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: space-between;
+      padding: 1rem;
+    }
+
+    .holo-card::after {
+      content: '';
+      position: absolute;
+      top: 0; left: 0; width: 100%; height: 100%;
+      background: linear-gradient(
+        115deg,
+        transparent 20%,
+        rgba(255, 0, 127, 0.3) 40%,
+        rgba(0, 240, 255, 0.3) 60%,
+        transparent 80%
+      );
+      opacity: 0.6;
+      pointer-events: none;
+      mix-blend-mode: color-dodge;
+    }
+
+    .card-title {
+      font-size: 0.75rem;
+      font-weight: 800;
+      letter-spacing: 0.1em;
+      text-transform: uppercase;
+      color: #94a3b8;
+    }
+
+    .card-svg-container {
+      width: 140px;
+      height: 140px;
+    }
+
+    .rarity-pills {
+      display: flex;
+      gap: 0.4rem;
+      flex-wrap: wrap;
+      justify-content: center;
+    }
+
+    .rarity-tag {
+      font-size: 0.6rem;
+      font-weight: 800;
+      padding: 0.25rem 0.5rem;
+      border-radius: 4px;
+      background: rgba(0, 240, 255, 0.15);
+      border: 1px solid var(--accent);
+      color: #fff;
+      text-transform: uppercase;
+    }
+
+    .rarity-tag.gold {
+      background: rgba(255, 215, 0, 0.2);
+      border-color: var(--gold);
+      color: var(--gold);
+    }
+
+    .modal-actions {
+      display: flex;
+      flex-direction: column;
+      gap: 0.6rem;
+    }
+
     .btn {
       width: 100%;
       padding: 0.85rem 1.25rem;
-      border-radius: 10px;
+      border-radius: 12px;
       border: none;
       font-weight: 800;
       font-size: 0.85rem;
@@ -336,10 +436,20 @@
       box-shadow: 0 0 30px rgba(255, 215, 0, 0.6);
     }
 
+    .btn-overcharge {
+      background: linear-gradient(135deg, var(--pink), var(--purple));
+      color: #fff;
+      box-shadow: 0 0 15px rgba(255, 0, 127, 0.4);
+    }
+
+    .btn-overcharge:hover {
+      transform: translateY(-2px);
+      box-shadow: 0 0 25px rgba(255, 0, 127, 0.7);
+    }
+
     .btn-secondary {
       background: transparent;
       color: #64748b;
-      margin-top: 0.5rem;
     }
 
     .btn-secondary:hover { color: #fff; }
@@ -367,6 +477,7 @@
     <div class="field-container">
       <div class="stream-overlay">
         <div class="combo-badge" id="comboBadge">5x COMBO SPREE!</div>
+        <div class="overcharge-badge" id="overchargeBadge">⚡ OVERCHARGING ACTIVE (+30 TARGET)</div>
       </div>
       <canvas id="fieldCanvas"></canvas>
     </div>
@@ -383,7 +494,7 @@
           </div>
         </div>
 
-        <div class="creature-viewport">
+        <div class="creature-viewport" id="viewportChamber">
           <svg class="creature-svg" id="creatureSvg" viewBox="0 0 200 200"></svg>
         </div>
 
@@ -397,28 +508,36 @@
     </div>
   </main>
 
-  <!-- MINT READY MODAL -->
+  <!-- MINT MODAL -->
   <div class="modal-overlay" id="winModal">
     <div class="modal-box">
-      <div class="modal-title gold-text">CREATURE SYNTHESIZED!</div>
-      <div class="modal-subtitle">Target pops reached. Your custom specimen has fully formed and is ready to mint.</div>
-      <div class="card-preview" id="winPreview"></div>
-      <button class="btn btn-primary" onclick="alert('Mint Contract Triggered!')">MINT NOW (LIVE)</button>
-      <button class="btn btn-secondary" onclick="resetStream()">Continue Streaming</button>
+      <div class="modal-title gold-text" id="modalTitle">CREATURE READY!</div>
+      <div class="modal-subtitle" id="modalSubtitle">Target pops reached. Your custom specimen has fully formed.</div>
+      
+      <!-- Holographic Card -->
+      <div class="card-container">
+        <div class="holo-card" id="holoCard">
+          <div class="card-title" id="cardSpecimenId">COLONY #1842</div>
+          <div class="card-svg-container" id="cardSvgPreview"></div>
+          <div class="rarity-pills" id="rarityPills"></div>
+        </div>
+      </div>
+
+      <div class="modal-actions">
+        <button class="btn btn-primary" onclick="alert('Mint Contract Triggered!')">MINT NOW (LIVE)</button>
+        <button class="btn btn-overcharge" id="overchargeBtn" onclick="triggerOvercharge()">⚡ OVERCHARGE (+30 POPS FOR RARE MUTATION)</button>
+        <button class="btn btn-secondary" onclick="resetStream()">Continue Streaming</button>
+      </div>
     </div>
   </div>
 
   <script>
-    // --- AUDIO SYNTHESIS ENGINE ---
+    // --- AUDIO SYNTHESIS ENGINE WITH PITCHING ---
     class SoundEngine {
-      constructor() {
-        this.ctx = null;
-      }
+      constructor() { this.ctx = null; }
 
       init() {
-        if (!this.ctx) {
-          this.ctx = new (window.AudioContext || window.webkitAudioContext)();
-        }
+        if (!this.ctx) this.ctx = new (window.AudioContext || window.webkitAudioContext)();
       }
 
       playPop(combo = 1) {
@@ -428,10 +547,11 @@
         const osc = this.ctx.createOscillator();
         const gain = this.ctx.createGain();
 
-        const pitch = Math.min(800, 280 + (combo * 20) + Math.random() * 80);
+        // Progressive Pitching
+        const pitch = Math.min(1200, 280 + (combo * 35) + Math.random() * 40);
         osc.type = 'sine';
         osc.frequency.setValueAtTime(pitch, this.ctx.currentTime);
-        osc.frequency.exponentialRampToValueAtTime(60, this.ctx.currentTime + 0.07);
+        osc.frequency.exponentialRampToValueAtTime(80, this.ctx.currentTime + 0.07);
 
         gain.gain.setValueAtTime(0.3, this.ctx.currentTime);
         gain.gain.exponentialRampToValueAtTime(0.01, this.ctx.currentTime + 0.07);
@@ -459,7 +579,7 @@
             gain.connect(this.ctx.destination);
             osc.start();
             osc.stop(this.ctx.currentTime + 0.3);
-          }, i * 50);
+          }, i * 40);
         });
       }
     }
@@ -467,27 +587,26 @@
     const audio = new SoundEngine();
 
     // --- GAME ENGINE STATE ---
-    // Dynamic random target from 60 to 150
     let mintTarget = Math.floor(Math.random() * (150 - 60 + 1)) + 60;
     let totalPopped = 0;
     let comboCount = 0;
     let comboTimer = null;
-    let coresRemaining = 1842;
+    let isOvercharged = false;
 
-    // Expanded DNA pipeline to support > 10,000 unique trait permutations
     let creatureDNA = {
       hue: 180,
       secondaryHue: 240,
-      bodyShape: 'circle', // circle, rect, blob, star, oval
-      texturePattern: 'none', // dots, stripes, rings
+      bodyShape: 'circle',
+      texturePattern: 'none',
       eyes: 0,
-      eyeStyle: 'classic', // classic, cyclops, anime, alien, cute
+      eyeStyle: 'classic',
       limbs: 0,
-      limbType: 'tentacle', // tentacle, antenna, feet
-      ears: 'none', // bunny, cat, pointed, horns
-      mouth: 'none', // smile, fang, surprised, cute
+      limbType: 'tentacle',
+      ears: 'none',
+      mouth: 'none',
       aura: false,
-      crown: false
+      crown: false,
+      mutatedGlow: false
     };
 
     const canvas = document.getElementById('fieldCanvas');
@@ -496,13 +615,16 @@
     const progressFill = document.getElementById('progressFill');
     const targetText = document.getElementById('targetText');
     const comboBadge = document.getElementById('comboBadge');
+    const overchargeBadge = document.getElementById('overchargeBadge');
     const dnaLog = document.getElementById('dnaLog');
     const creatureSvg = document.getElementById('creatureSvg');
+    const viewportChamber = document.getElementById('viewportChamber');
     const winModal = document.getElementById('winModal');
+    const overchargeBtn = document.getElementById('overchargeBtn');
 
-    // --- FALLING BUBBLE STREAM ENGINE ---
     let bubbles = [];
     let particles = [];
+    let arcs = []; // Electrical plasma arcs towards incubator
     let isPointerDown = false;
     let lastPointerPos = { x: 0, y: 0 };
 
@@ -513,9 +635,7 @@
     }
 
     class FallingBubble {
-      constructor() {
-        this.reset(true);
-      }
+      constructor() { this.reset(true); }
 
       reset(initial = false) {
         this.radius = Math.random() * 18 + 18;
@@ -524,31 +644,21 @@
         this.speedY = Math.random() * 2.5 + 1.5;
         this.driftFreq = Math.random() * 0.03 + 0.01;
         this.driftAmp = Math.random() * 1.5 + 0.5;
-        this.popped = false;
-        
-        this.type = Math.random() < 0.05 ? 'gold' : 'standard';
-        if (this.type === 'gold') {
-          this.speedY *= 1.4;
-        }
+        this.type = Math.random() < 0.06 ? 'gold' : 'standard';
+        if (this.type === 'gold') this.speedY *= 1.4;
       }
 
       update() {
         this.y += this.speedY;
         this.x += Math.sin(this.y * this.driftFreq) * this.driftAmp;
-
-        if (this.y - this.radius > canvas.height) {
-          this.reset(false);
-        }
+        if (this.y - this.radius > canvas.height) this.reset(false);
       }
 
       draw() {
         ctx.save();
         ctx.translate(this.x, this.y);
 
-        const grad = ctx.createRadialGradient(
-          -this.radius * 0.3, -this.radius * 0.3, this.radius * 0.1,
-          0, 0, this.radius
-        );
+        const grad = ctx.createRadialGradient(-this.radius * 0.3, -this.radius * 0.3, this.radius * 0.1, 0, 0, this.radius);
 
         if (this.type === 'gold') {
           grad.addColorStop(0, 'rgba(255, 245, 180, 0.95)');
@@ -580,8 +690,7 @@
 
     class Particle {
       constructor(x, y, color) {
-        this.x = x;
-        this.y = y;
+        this.x = x; this.y = y;
         this.vx = (Math.random() - 0.5) * 7;
         this.vy = (Math.random() - 0.5) * 7;
         this.radius = Math.random() * 3.5 + 1.5;
@@ -589,13 +698,7 @@
         this.alpha = 1;
         this.decay = 0.04 + Math.random() * 0.02;
       }
-
-      update() {
-        this.x += this.vx;
-        this.y += this.vy;
-        this.alpha -= this.decay;
-      }
-
+      update() { this.x += this.vx; this.y += this.vy; this.alpha -= this.decay; }
       draw() {
         ctx.save();
         ctx.globalAlpha = Math.max(0, this.alpha);
@@ -607,58 +710,61 @@
       }
     }
 
+    // Plasma arcs connecting popped bubbles to Incubator
+    class Arc {
+      constructor(startX, startY, isGold) {
+        this.startX = startX;
+        this.startY = startY;
+        this.isGold = isGold;
+        this.life = 1.0;
+        const rect = viewportChamber.getBoundingClientRect();
+        const canvasRect = canvas.getBoundingClientRect();
+        this.targetX = rect.left - canvasRect.left + rect.width / 2;
+        this.targetY = rect.top - canvasRect.top + rect.height / 2;
+      }
+
+      update() { this.life -= 0.1; }
+
+      draw() {
+        ctx.save();
+        ctx.globalAlpha = Math.max(0, this.life);
+        ctx.beginPath();
+        ctx.moveTo(this.startX, this.startY);
+
+        const midX = (this.startX + this.targetX) / 2 + (Math.random() - 0.5) * 60;
+        const midY = (this.startY + this.targetY) / 2 + (Math.random() - 0.5) * 60;
+
+        ctx.quadraticCurveTo(midX, midY, this.targetX, this.targetY);
+        ctx.strokeStyle = this.isGold ? '#ffd700' : '#00f0ff';
+        ctx.lineWidth = this.isGold ? 3 : 2;
+        ctx.shadowColor = this.isGold ? '#ffd700' : '#00f0ff';
+        ctx.shadowBlur = 10;
+        ctx.stroke();
+        ctx.restore();
+      }
+    }
+
     function initStream() {
       bubbles = [];
-      const bubbleCount = Math.floor((canvas.width * canvas.height) / 9000);
-      for (let i = 0; i < Math.max(25, bubbleCount); i++) {
-        bubbles.push(new FallingBubble());
-      }
+      const count = Math.floor((canvas.width * canvas.height) / 9000);
+      for (let i = 0; i < Math.max(25, count); i++) bubbles.push(new FallingBubble());
     }
-
-    function spawnPopParticles(x, y, isGold) {
-      const color = isGold ? '#ffd700' : '#00f0ff';
-      for (let i = 0; i < 12; i++) {
-        particles.push(new Particle(x, y, color));
-      }
-    }
-
-    // --- INTERACTION & DRAG/SWIPE POINTER ENGINE ---
-    function handlePointer(x, y) {
-      bubbles.forEach(b => {
-        const dist = Math.hypot(x - b.x, y - b.y);
-        if (dist < b.radius) {
-          popBubble(b);
-        }
-      });
-    }
-
-    canvas.addEventListener('pointerdown', (e) => {
-      isPointerDown = true;
-      const rect = canvas.getBoundingClientRect();
-      lastPointerPos = { x: e.clientX - rect.left, y: e.clientY - rect.top };
-      handlePointer(lastPointerPos.x, lastPointerPos.y);
-    });
-
-    canvas.addEventListener('pointermove', (e) => {
-      if (!isPointerDown) return;
-      const rect = canvas.getBoundingClientRect();
-      const currX = e.clientX - rect.left;
-      const currY = e.clientY - rect.top;
-
-      const steps = 5;
-      for (let i = 0; i <= steps; i++) {
-        const ix = lastPointerPos.x + (currX - lastPointerPos.x) * (i / steps);
-        const iy = lastPointerPos.y + (currY - lastPointerPos.y) * (i / steps);
-        handlePointer(ix, iy);
-      }
-      lastPointerPos = { x: currX, y: currY };
-    });
-
-    window.addEventListener('pointerup', () => { isPointerDown = false; });
 
     function popBubble(bubble) {
       const isGold = bubble.type === 'gold';
-      spawnPopParticles(bubble.x, bubble.y, isGold);
+      
+      // Spawn particles & plasma arc to chamber
+      for (let i = 0; i < 10; i++) particles.push(new Particle(bubble.x, bubble.y, isGold ? '#ffd700' : '#00f0ff'));
+      arcs.push(new Arc(bubble.x, bubble.y, isGold));
+
+      // Trigger Incubator visual reaction
+      viewportChamber.classList.add('flash');
+      creatureSvg.classList.add('snap');
+      setTimeout(() => {
+        viewportChamber.classList.remove('flash');
+        creatureSvg.classList.remove('snap');
+      }, 150);
+
       bubble.reset(false);
 
       const popValue = isGold ? 5 : 1;
@@ -677,15 +783,40 @@
         comboBadge.classList.add('active');
       }
 
-      if (isGold) {
-        audio.playGoldPop();
-      } else {
-        audio.playPop(comboCount);
-      }
+      if (isGold) audio.playGoldPop(); else audio.playPop(comboCount);
 
       evolveCreature(isGold);
       updateProgress();
     }
+
+    function handlePointer(x, y) {
+      bubbles.forEach(b => {
+        if (Math.hypot(x - b.x, y - b.y) < b.radius) popBubble(b);
+      });
+    }
+
+    canvas.addEventListener('pointerdown', (e) => {
+      isPointerDown = true;
+      const rect = canvas.getBoundingClientRect();
+      lastPointerPos = { x: e.clientX - rect.left, y: e.clientY - rect.top };
+      handlePointer(lastPointerPos.x, lastPointerPos.y);
+    });
+
+    canvas.addEventListener('pointermove', (e) => {
+      if (!isPointerDown) return;
+      const rect = canvas.getBoundingClientRect();
+      const currX = e.clientX - rect.left;
+      const currY = e.clientY - rect.top;
+
+      for (let i = 0; i <= 5; i++) {
+        const ix = lastPointerPos.x + (currX - lastPointerPos.x) * (i / 5);
+        const iy = lastPointerPos.y + (currY - lastPointerPos.y) * (i / 5);
+        handlePointer(ix, iy);
+      }
+      lastPointerPos = { x: currX, y: currY };
+    });
+
+    window.addEventListener('pointerup', () => { isPointerDown = false; });
 
     function updateProgress() {
       const percent = Math.min(100, (totalPopped / mintTarget) * 100);
@@ -693,32 +824,39 @@
       targetText.textContent = `${Math.min(mintTarget, totalPopped)} / ${mintTarget}`;
 
       if (totalPopped >= mintTarget && !winModal.classList.contains('visible')) {
-        triggerWin();
+        triggerWinModal();
       }
     }
 
-    // --- PROCEDURAL CHARACTER GENERATION SYSTEM (10,000+ Permutations) ---
+    function triggerOvercharge() {
+      winModal.classList.remove('visible');
+      isOvercharged = true;
+      mintTarget += 30;
+      overchargeBadge.style.display = 'block';
+      overchargeBtn.style.display = 'none'; // Overcharge can only be triggered once per run
+      logTrait('⚡ OVERCHARGE ENGAGED (+30 POPS)');
+      updateProgress();
+    }
+
+    // --- PROCEDURAL CHARACTER SYSTEM ---
     function evolveCreature(isGold) {
       creatureDNA.hue = (creatureDNA.hue + (isGold ? 40 : 6)) % 360;
       creatureDNA.secondaryHue = (creatureDNA.hue + 120) % 360;
 
       const progressRatio = totalPopped / mintTarget;
 
-      // 10% Progress: Body Shape Assignment
       if (progressRatio > 0.10 && creatureDNA.bodyShape === 'circle') {
         const shapes = ['circle', 'rect', 'blob', 'oval', 'star'];
         creatureDNA.bodyShape = shapes[Math.floor(Math.random() * shapes.length)];
-        logTrait(`Body Type: ${creatureDNA.bodyShape.toUpperCase()}`);
+        logTrait(`Body: ${creatureDNA.bodyShape.toUpperCase()}`);
       }
 
-      // 25% Progress: Ears / Horns Attachment
       if (progressRatio > 0.25 && creatureDNA.ears === 'none') {
         const earTypes = ['bunny', 'cat', 'pointed', 'horns'];
         creatureDNA.ears = earTypes[Math.floor(Math.random() * earTypes.length)];
         logTrait(`Ears: ${creatureDNA.ears.toUpperCase()}`);
       }
 
-      // 40% Progress: Eye Configuration & Style
       if (progressRatio > 0.40 && creatureDNA.eyes === 0) {
         const styles = ['classic', 'cyclops', 'anime', 'alien', 'cute'];
         creatureDNA.eyeStyle = styles[Math.floor(Math.random() * styles.length)];
@@ -726,14 +864,12 @@
         logTrait(`Eyes: ${creatureDNA.eyeStyle.toUpperCase()}`);
       }
 
-      // 55% Progress: Texture Patterning
       if (progressRatio > 0.55 && creatureDNA.texturePattern === 'none') {
-        const patterns = ['dots', 'stripes', 'rings'];
+        const patterns = ['dots', 'stripes'];
         creatureDNA.texturePattern = patterns[Math.floor(Math.random() * patterns.length)];
         logTrait(`Pattern: ${creatureDNA.texturePattern.toUpperCase()}`);
       }
 
-      // 70% Progress: Limb Extraction
       if (progressRatio > 0.70 && creatureDNA.limbs === 0) {
         const limbTypes = ['tentacle', 'antenna', 'feet'];
         creatureDNA.limbType = limbTypes[Math.floor(Math.random() * limbTypes.length)];
@@ -741,17 +877,20 @@
         logTrait(`Limbs: ${creatureDNA.limbType.toUpperCase()}`);
       }
 
-      // 85% Progress: Mouth Expression
       if (progressRatio > 0.85 && creatureDNA.mouth === 'none') {
         const mouths = ['smile', 'fang', 'surprised', 'cute'];
         creatureDNA.mouth = mouths[Math.floor(Math.random() * mouths.length)];
         logTrait(`Mouth: ${creatureDNA.mouth.toUpperCase()}`);
       }
 
-      // 95% Progress: Energy Aura
       if (progressRatio > 0.95 && !creatureDNA.aura) {
         creatureDNA.aura = true;
         logTrait('Aura Field Engaged');
+      }
+
+      if (isOvercharged && progressRatio >= 1.0 && !creatureDNA.mutatedGlow) {
+        creatureDNA.mutatedGlow = true;
+        logTrait('⚡ MUTATED GLOW UNLOCKED!');
       }
 
       if (isGold && !creatureDNA.crown) {
@@ -774,12 +913,14 @@
       const secondaryColor = `hsl(${creatureDNA.secondaryHue}, 80%, 45%)`;
       let svgContent = '';
 
-      // Layer 1: Aura
+      if (creatureDNA.mutatedGlow) {
+        svgContent += `<circle cx="100" cy="100" r="90" fill="none" stroke="#ff007f" stroke-width="6" opacity="0.6" />`;
+      }
+
       if (creatureDNA.aura) {
         svgContent += `<circle cx="100" cy="100" r="78" fill="none" stroke="${primaryColor}" stroke-width="3" stroke-dasharray="8 6" opacity="0.8" />`;
       }
 
-      // Layer 2: Ears / Horns
       if (creatureDNA.ears === 'bunny') {
         svgContent += `<path d="M 75 60 Q 60 10 75 10 Q 90 10 85 60 Z" fill="${secondaryColor}" />`;
         svgContent += `<path d="M 125 60 Q 110 10 125 10 Q 140 10 115 60 Z" fill="${secondaryColor}" />`;
@@ -791,7 +932,6 @@
         svgContent += `<path d="M 135 65 Q 160 30 145 25 Q 130 30 125 60 Z" fill="#ffd700" />`;
       }
 
-      // Layer 3: Limbs
       if (creatureDNA.limbs > 0) {
         for (let i = 0; i < creatureDNA.limbs; i++) {
           const angle = (i / creatureDNA.limbs) * Math.PI + Math.PI * 0.15;
@@ -809,7 +949,6 @@
         }
       }
 
-      // Layer 4: Base Body
       if (creatureDNA.bodyShape === 'rect') {
         svgContent += `<rect x="52" y="52" width="96" height="96" rx="20" fill="${primaryColor}" />`;
       } else if (creatureDNA.bodyShape === 'blob') {
@@ -822,76 +961,81 @@
         svgContent += `<circle cx="100" cy="100" r="48" fill="${primaryColor}" />`;
       }
 
-      // Layer 5: Body Texture Overlay
       if (creatureDNA.texturePattern === 'dots') {
         svgContent += `<circle cx="85" cy="85" r="4" fill="${secondaryColor}" opacity="0.6"/>`;
         svgContent += `<circle cx="115" cy="115" r="6" fill="${secondaryColor}" opacity="0.6"/>`;
-        svgContent += `<circle cx="90" cy="120" r="3" fill="${secondaryColor}" opacity="0.6"/>`;
       } else if (creatureDNA.texturePattern === 'stripes') {
         svgContent += `<line x1="70" y1="80" x2="130" y2="80" stroke="${secondaryColor}" stroke-width="4" opacity="0.5"/>`;
         svgContent += `<line x1="65" y1="110" x2="135" y2="110" stroke="${secondaryColor}" stroke-width="4" opacity="0.5"/>`;
       }
 
-      // Layer 6: Crown
       if (creatureDNA.crown) {
         svgContent += `<polygon points="75,50 87,30 100,45 113,30 125,50" fill="#ffd700" />`;
       }
 
-      // Layer 7: Eyes
       if (creatureDNA.eyes > 0) {
         if (creatureDNA.eyeStyle === 'cyclops') {
           svgContent += `<circle cx="100" cy="90" r="14" fill="#fff"/><circle cx="100" cy="90" r="6" fill="#000"/><circle cx="103" cy="87" r="2" fill="#fff"/>`;
         } else if (creatureDNA.eyeStyle === 'anime') {
-          svgContent += `
-            <ellipse cx="85" cy="92" rx="8" ry="12" fill="#fff"/><ellipse cx="85" cy="92" rx="4" ry="7" fill="#00f0ff"/>
-            <ellipse cx="115" cy="92" rx="8" ry="12" fill="#fff"/><ellipse cx="115" cy="92" rx="4" ry="7" fill="#00f0ff"/>
-          `;
-        } else if (creatureDNA.eyeStyle === 'alien') {
-          svgContent += `
-            <polygon points="75,85 92,92 80,102" fill="#000"/>
-            <polygon points="125,85 108,92 120,102" fill="#000"/>
-          `;
+          svgContent += `<ellipse cx="85" cy="92" rx="8" ry="12" fill="#fff"/><ellipse cx="85" cy="92" rx="4" ry="7" fill="#00f0ff"/><ellipse cx="115" cy="92" rx="8" ry="12" fill="#fff"/><ellipse cx="115" cy="92" rx="4" ry="7" fill="#00f0ff"/>`;
         } else {
-          svgContent += `
-            <circle cx="85" cy="92" r="8" fill="#fff"/><circle cx="85" cy="92" r="3" fill="#000"/>
-            <circle cx="115" cy="92" r="8" fill="#fff"/><circle cx="115" cy="92" r="3" fill="#000"/>
-          `;
+          svgContent += `<circle cx="85" cy="92" r="8" fill="#fff"/><circle cx="85" cy="92" r="3" fill="#000"/><circle cx="115" cy="92" r="8" fill="#fff"/><circle cx="115" cy="92" r="3" fill="#000"/>`;
         }
       }
 
-      // Layer 8: Mouth
       if (creatureDNA.mouth === 'smile') {
         svgContent += `<path d="M 88 112 Q 100 124 112 112" stroke="#000" stroke-width="3" fill="none" stroke-linecap="round"/>`;
       } else if (creatureDNA.mouth === 'fang') {
         svgContent += `<path d="M 88 110 L 112 110 L 100 120 Z" fill="#fff" stroke="#000" stroke-width="2"/>`;
-      } else if (creatureDNA.mouth === 'surprised') {
-        svgContent += `<circle cx="100" cy="114" r="5" fill="#000"/>`;
-      } else if (creatureDNA.mouth === 'cute') {
-        svgContent += `<path d="M 90 112 Q 95 118 100 112 Q 105 118 110 112" stroke="#000" stroke-width="2.5" fill="none" stroke-linecap="round"/>`;
       }
 
       creatureSvg.innerHTML = svgContent;
     }
 
-    function triggerWin() {
-      const target = document.getElementById('winPreview');
+    // --- 3D TILT HOLOGRAPHIC CARD SYSTEM ---
+    const holoCard = document.getElementById('holoCard');
+    holoCard.addEventListener('mousemove', (e) => {
+      const rect = holoCard.getBoundingClientRect();
+      const x = e.clientX - rect.left - rect.width / 2;
+      const y = e.clientY - rect.top - rect.height / 2;
+      holoCard.style.transform = `rotateY(${x / 8}deg) rotateX(${-y / 8}deg)`;
+    });
+
+    holoCard.addEventListener('mouseleave', () => {
+      holoCard.style.transform = 'rotateY(0deg) rotateX(0deg)';
+    });
+
+    function triggerWinModal() {
+      const target = document.getElementById('cardSvgPreview');
       target.innerHTML = '';
       const clone = creatureSvg.cloneNode(true);
-      clone.style.width = '160px';
-      clone.style.height = '160px';
       target.appendChild(clone);
+
+      const pills = document.getElementById('rarityPills');
+      pills.innerHTML = '';
+
+      if (creatureDNA.crown) pills.innerHTML += `<span class="rarity-tag gold">👑 GOLD CROWN</span>`;
+      if (creatureDNA.mutatedGlow) pills.innerHTML += `<span class="rarity-tag" style="border-color:var(--pink)">⚡ OVERCHARGED</span>`;
+      if (creatureDNA.aura) pills.innerHTML += `<span class="rarity-tag">AURA FIELD</span>`;
+      pills.innerHTML += `<span class="rarity-tag">${creatureDNA.bodyShape}</span>`;
+
+      if (isOvercharged) {
+        document.getElementById('modalTitle').textContent = 'MUTATED SPECIMEN READY!';
+        document.getElementById('modalSubtitle').textContent = 'Overcharge target reached. Rare traits unlocked!';
+      }
+
       winModal.classList.add('visible');
     }
 
     function resetStream() {
       winModal.classList.remove('visible');
       totalPopped = 0;
-      
-      // Calculate new random target threshold (60 - 150)
+      isOvercharged = false;
       mintTarget = Math.floor(Math.random() * (150 - 60 + 1)) + 60;
       poppedDisplay.textContent = '0';
-      
-      // Reset DNA state
+      overchargeBadge.style.display = 'none';
+      overchargeBtn.style.display = 'block';
+
       creatureDNA = {
         hue: Math.floor(Math.random() * 360),
         secondaryHue: 240,
@@ -904,7 +1048,8 @@
         ears: 'none',
         mouth: 'none',
         aura: false,
-        crown: false
+        crown: false,
+        mutatedGlow: false
       };
 
       dnaLog.innerHTML = `<div class="dna-item"><span>Stream Status</span><span style="color: var(--accent);">Target: ${mintTarget} Pops</span></div>`;
@@ -912,25 +1057,17 @@
       renderCreatureSVG();
     }
 
-    // Render loop
+    // Main Render Loop
     function animate() {
       ctx.clearRect(0, 0, canvas.width, canvas.height);
 
-      bubbles.forEach(b => {
-        b.update();
-        b.draw();
-      });
-
-      particles.forEach((p, idx) => {
-        p.update();
-        p.draw();
-        if (p.alpha <= 0) particles.splice(idx, 1);
-      });
+      bubbles.forEach(b => { b.update(); b.draw(); });
+      particles.forEach((p, idx) => { p.update(); p.draw(); if (p.alpha <= 0) particles.splice(idx, 1); });
+      arcs.forEach((a, idx) => { a.update(); a.draw(); if (a.life <= 0) arcs.splice(idx, 1); });
 
       requestAnimationFrame(animate);
     }
 
-    // Init Engine
     window.addEventListener('resize', resizeCanvas);
     resizeCanvas();
     initStream();
